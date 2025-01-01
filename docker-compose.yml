@@ -26,7 +26,7 @@ services:
     container_name: certbot
     depends_on:
       nginx:
-        condition: service_healthy
+        condition: service_started
     volumes:
       - ./certs:/etc/letsencrypt
       - ./webroot:/webroot
