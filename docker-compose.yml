@@ -1,4 +1,25 @@
 services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/letsencrypt
+      - ./nginx-logs:/var/log/nginx
+      - ./webroot:/webroot
+    entrypoint: /app/entrypoint.sh  # Ensure certificates exist before starting Nginx
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - shared_network
+
   certbot:
     image: certbot/certbot
     container_name: certbot
@@ -6,9 +27,9 @@ services:
       nginx:
         condition: service_healthy
     volumes:
-      - ./certs:/etc/letsencrypt                    # Directory to store certificates
-      - ./webroot:/webroot                          # Directory for ACME challenges
-      - ./certbot-logs:/var/log/letsencrypt         # Directory for Certbot logs
+      - ./certs:/etc/letsencrypt
+      - ./webroot:/webroot
+      - ./certbot-logs:/var/log/letsencrypt
     entrypoint: >
       /bin/sh -c '
       if [ ! -d "/etc/letsencrypt/live/langkilde.se" ]; then
@@ -18,26 +39,6 @@ services:
         certbot renew --quiet --deploy-hook "nginx -s reload";
         sleep 12h;
       done'
-    networks:
-      - shared_network
-
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro       # Nginx configuration
-      - ./certs:/etc/letsencrypt                    # SSL certificates (including self-signed)
-      - ./nginx-logs:/var/log/nginx                 # Log directory
-      - ./webroot:/webroot                          # Webroot for ACME challenges
     networks:
       - shared_network
 
