@@ -34,10 +34,12 @@ services:
     entrypoint: >
       /bin/sh -c '
       if [ ! -d "/etc/letsencrypt/live/langkilde.se" ]; then
-        certbot certonly --webroot --webroot-path=/webroot -d langkilde.se -d www.langkilde.se -d daniel.langkilde.se -d www.daniel.langkilde.se;
+        certbot certonly --webroot --webroot-path=/webroot \
+          --email daniel.langkilde@gmail.com --agree-tos --no-eff-email \
+          -d langkilde.se -d www.langkilde.se -d daniel.langkilde.se -d www.daniel.langkilde.se;
       fi;
       while :; do
-        certbot renew --quiet --deploy-hook "nginx -s reload";
+        certbot renew --quiet --deploy-hook "docker exec nginx nginx -s reload";
         sleep 12h;
       done'
     networks:
