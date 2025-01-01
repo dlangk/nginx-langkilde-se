@@ -11,9 +11,10 @@ services:
       - ./certs:/etc/letsencrypt
       - ./nginx-logs:/var/log/nginx
       - ./webroot:/webroot
-    entrypoint: /app/entrypoint.sh  # Ensure certificates exist before starting Nginx
+      - ./entrypoint.sh:/app/entrypoint.sh:ro  # Mount the entrypoint script
+    entrypoint: /app/entrypoint.sh
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost"]
+      test: [ "CMD", "curl", "-f", "http://localhost" ]
       interval: 30s
       timeout: 10s
       retries: 3
